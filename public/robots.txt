@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /profile/
+Disallow: /wallets/
+Disallow: /transactions/
+
+Sitemap: https://goldxusdt.com/sitemap.xml

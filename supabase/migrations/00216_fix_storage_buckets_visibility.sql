@@ -1,0 +1,1 @@
+CREATE POLICY "Allow public to see buckets" ON storage.buckets FOR SELECT USING (true);

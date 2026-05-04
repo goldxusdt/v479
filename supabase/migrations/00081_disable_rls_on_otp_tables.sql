@@ -1,0 +1,2 @@
+ALTER TABLE public.otp_verifications DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pending_signups DISABLE ROW LEVEL SECURITY;

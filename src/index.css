@@ -1,0 +1,387 @@
+/* v56 Design System */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scrollbar-gutter: stable;
+  }
+  :root {
+    --radius: 1.25rem;
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 47 65% 53%;
+    --primary-foreground: 26 83% 14%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 45 100% 50%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 47 65% 53%;
+    
+    /* Design Tokens */
+    --gold-glow: 47 65% 53% / 0.25;
+    --gold-border: 47 65% 53% / 0.15;
+    --glass-background: 0 0% 6% / 0.7;
+    --sidebar-background: 0 0% 6%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 47 65% 53%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 12%;
+    --sidebar-ring: 47 65% 53%;
+
+    /* Extended Luxury Tokens */
+    --sapphire: 215 100% 50%;
+    --sapphire-glow: 215 100% 50% / 0.3;
+    --emerald: 150 100% 40%;
+    --emerald-glow: 150 100% 40% / 0.3;
+    --ruby: 345 100% 50%;
+    --ruby-glow: 345 100% 50% / 0.3;
+  }
+
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(47, 65%, 53%, 0.12) 0, transparent 40%), 
+      radial-gradient(at 100% 0%, hsla(45, 100%, 50%, 0.08) 0, transparent 40%),
+      radial-gradient(at 50% 100%, hsla(47, 65%, 53%, 0.05) 0, transparent 40%);
+    background-attachment: fixed;
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Tablet & Desktop Typography Refinements */
+  @media (min-width: 768px) {
+    :root {
+      --radius: 1.5rem;
+    }
+    h1 { @apply text-6xl; }
+    h2 { @apply text-4xl; }
+    h3 { @apply text-2xl; }
+  }
+
+  @media (min-width: 1280px) {
+    h1 { @apply text-8xl; }
+    h2 { @apply text-5xl; }
+    h3 { @apply text-3xl; }
+  }
+
+  button, .btn {
+    @apply transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 215, 0, 0.2);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 215, 0, 0.4);
+  }
+
+  ::selection {
+    background: rgba(255, 215, 0, 0.3);
+    color: #fff;
+  }
+}
+
+@layer utilities {
+  .v56-glass {
+    background: hsla(0, 0%, 6%, 0.75);
+    backdrop-filter: blur(24px);
+    border: 1px solid hsla(47, 65%, 53%, 0.15);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  }
+
+  .v56-glass:hover {
+    border-color: hsla(47, 65%, 53%, 0.35);
+    background: hsla(0, 0%, 8%, 0.85);
+    box-shadow: 0 16px 48px 0 rgba(0, 0, 0, 0.7);
+  }
+
+  /* Only apply motion to non-dialog glass elements */
+  .v56-glass:not([role="dialog"]):not([role="alertdialog"]):hover {
+    transform: translateY(-4px) scale(1.005);
+  }
+  
+  .v56-gradient-text {
+    background: linear-gradient(135deg, #FFD700 0%, #FFF59D 30%, #D4AF37 60%, #FFD700 100%);
+    background-size: 200% auto;
+    animation: goldShimmer 4s linear infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  @keyframes goldShimmer {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+  }
+
+  .gold-glow {
+    box-shadow: 0 0 30px hsla(47, 65%, 53%, 0.3);
+  }
+
+  .premium-gradient {
+    background: linear-gradient(135deg, #D4AF37 0%, #FFD700 50%, #D4AF37 100%);
+    background-size: 200% auto;
+    transition: 0.5s;
+    background-position: left center;
+  }
+
+  .premium-gradient:hover {
+    background-position: right center;
+  }
+
+  .floating {
+    animation: floating 4s ease-in-out infinite;
+  }
+
+  @keyframes floating {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+  }
+
+  @keyframes reveal-bottom {
+    0% { transform: translateY(30px); opacity: 0; filter: blur(10px); }
+    100% { transform: translateY(0); opacity: 1; filter: blur(0); }
+  }
+
+  @keyframes scale-up-center {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes blur-in {
+    0% { filter: blur(20px); opacity: 0; }
+    100% { filter: blur(0); opacity: 1; }
+  }
+
+  @keyframes shine-sweep {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+
+  .animate-reveal-bottom {
+    animation: reveal-bottom 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+  }
+
+  .animate-scale-up {
+    animation: scale-up-center 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  }
+
+  .animate-blur-in {
+    animation: blur-in 1s ease-out forwards;
+  }
+
+  /* Mobile Fallback Optimization */
+  @media (max-width: 640px) {
+    .animate-reveal-bottom {
+      animation: fade-in 0.5s ease-out forwards !important;
+      filter: none !important;
+      transform: none !important;
+    }
+  }
+
+  .premium-border {
+    position: relative;
+    border: none;
+  }
+
+  .premium-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: linear-gradient(135deg, hsla(47, 65%, 53%, 0.5), hsla(47, 65%, 53%, 0.1), hsla(47, 65%, 53%, 0.5));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .luxury-card {
+    background: hsla(0, 0%, 7%, 1);
+    border: 1px solid hsla(47, 65%, 53%, 0.1);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+  }
+
+  .luxury-card:hover {
+    border-color: hsla(47, 65%, 53%, 0.4);
+    box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.8);
+  }
+
+  /* Sapphire & Emerald Variations */
+  .sapphire-gradient {
+    background: linear-gradient(135deg, #0056b3 0%, #007bff 50%, #0056b3 100%);
+    background-size: 200% auto;
+    transition: 0.5s;
+  }
+  .sapphire-gradient:hover { background-position: right center; }
+  
+  .emerald-gradient {
+    background: linear-gradient(135deg, #006400 0%, #008000 50%, #006400 100%);
+    background-size: 200% auto;
+    transition: 0.5s;
+  }
+  .emerald-gradient:hover { background-position: right center; }
+
+  .sapphire-glow { box-shadow: 0 0 30px hsla(215, 100%, 50%, 0.3); }
+  .emerald-glow { box-shadow: 0 0 30px hsla(150, 100%, 40%, 0.3); }
+
+  /* Dedicated Nav Scrollbar */
+  .nav-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .nav-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+  }
+  .nav-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, hsla(47, 65%, 53%, 0.1), hsla(47, 65%, 53%, 0.4), hsla(47, 65%, 53%, 0.1));
+    border-radius: 10px;
+    border: 1px solid hsla(47, 65%, 53%, 0.1);
+  }
+
+  /* Device Specific Optimizations */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+
+  .desktop-hover-effect {
+    @apply transition-all duration-300 ease-in-out md:hover:scale-[1.02] md:hover:shadow-glow cursor-pointer;
+  }
+
+  .tablet-grid-layout {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
+  }
+
+  /* Smooth scaling for mid-range viewports */
+  .fluid-padding {
+    @apply p-4 sm:p-6 lg:p-10 xl:p-12;
+  }
+
+  .responsive-card-spacing {
+    @apply space-y-4 md:space-y-6 lg:space-y-8;
+  }
+
+  /* Optimization for large monitors */
+  @media (min-width: 1920px) {
+    .container {
+      max-width: 1600px;
+    }
+  }
+
+  .nav-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsla(47, 65%, 53%, 0.6);
+    box-shadow: 0 0 10px hsla(47, 65%, 53%, 0.3);
+  }
+
+  .responsive-container {
+    @apply w-full max-w-7xl mx-auto px-4 md:px-6;
+  }
+
+  .mobile-touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+
+  .tap-highlight-none {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Stable Dialog Fix: Stop shaking and provide adaptive positioning */
+  [role="dialog"], [role="alertdialog"], [data-radix-portal] > div {
+    backface-visibility: hidden;
+    perspective: 1000px;
+    -webkit-font-smoothing: subpixel-antialiased;
+    will-change: transform, opacity;
+    transform-style: preserve-3d;
+  }
+
+  /* Adaptive height solution for dialogs */
+  .dialog-adaptive-content {
+    max-height: 90vh;
+    max-height: 90dvh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    overscroll-behavior: contain;
+  }
+
+  .no-animations, .no-animations * {
+    animation-duration: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+    animation-name: none !important;
+  }
+  
+  .no-motion, .no-motion * {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  /* Specifically target hover transforms that are common in this app */
+  .no-motion .group:hover, 
+  .no-motion .hover\:scale-105:hover,
+  .no-motion .hover\:scale-110:hover,
+  .no-motion .active\:scale-95:active {
+    transform: none !important;
+  }
+
+  /* But keep centering for dialogs if they are within admin */
+  .no-motion [class*="translate-x-[-50%]"] {
+    transform: translate(-50%, -50%) !important;
+  }
+
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (max-width: 640px) {
+    .v56-glass {
+      backdrop-filter: blur(8px);
+    }
+    
+    /* Fallback for intersection observer on mobile */
+    .opacity-0.intersect-once {
+      opacity: 1 !important;
+      animation: none !important;
+      filter: none !important;
+      transform: none !important;
+    }
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+

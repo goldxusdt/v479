@@ -1,0 +1,2 @@
+ALTER TABLE public.user_investment_selections 
+DROP CONSTRAINT IF EXISTS user_investment_selections_user_id_investment_option_id_key;

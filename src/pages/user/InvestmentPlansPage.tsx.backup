@@ -1,0 +1,412 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { getVisibleInvestmentOptions, createPendingInvestmentSelection, getUserInvestmentSelections, getWalletBalances, getPlatformSetting } from '@/services/api';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { Loader2, TrendingUp, Wallet, ShieldCheck, Info, Clock, CheckCircle2, AlertCircle, Copy, Hash, ArrowLeft } from 'lucide-react';
+import { Gold3DIcon } from '@/components/ui/Gold3DIcon';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+
+export default function InvestmentPlansPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [options, setOptions] = useState<any[]>([]);
+  const [selectedOption, setSelectedOption] = useState<any>(null);
+  const [selections, setSelections] = useState<any[]>([]);
+  const [balances, setBalances] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [amount, setAmount] = useState<string>('');
+  const [showDepositDialog, setShowDepositDialog] = useState(false);
+  const [transactionHash, setTransactionHash] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [bep20Address, setBep20Address] = useState<string>('');
+  const [trc20Address, setTrc20Address] = useState<string>('');
+
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user]);
+
+  const loadData = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const [optionsData, selectionsData, balancesData, bep20, trc20] = await Promise.all([
+        getVisibleInvestmentOptions(),
+        getUserInvestmentSelections(user.id),
+        getWalletBalances(user.id),
+        getPlatformSetting('deposit_wallet_bep20'),
+        getPlatformSetting('deposit_wallet_trc20')
+      ]);
+      setOptions(optionsData);
+      setSelections(selectionsData);
+      setBalances(balancesData);
+      setBep20Address(bep20 || '');
+      setTrc20Address(trc20 || '');
+    } catch (error) {
+      console.error('Failed to load investment data:', error);
+      toast.error('Failed to load investment plans');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInvestClick = (option: any) => {
+    setSelectedOption(option);
+    setAmount(option.min_amount.toString());
+    setShowDepositDialog(true);
+  };
+
+  const handleSubmitInvestment = async () => {
+    if (!user || !selectedOption) return;
+    const investAmount = parseFloat(amount);
+    
+    if (isNaN(investAmount) || investAmount < selectedOption.min_amount) {
+      toast.error(`Minimum investment for this plan is ${selectedOption.min_amount} USDT`);
+      return;
+    }
+
+    if (!transactionHash.trim()) {
+      toast.error('Please enter the transaction hash');
+      return;
+    }
+
+    if (!transactionHash.startsWith('0x') || transactionHash.length < 32) {
+      toast.error('Invalid transaction hash format');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await createPendingInvestmentSelection(user.id, selectedOption.id, investAmount, transactionHash);
+      toast.success('Investment submitted for validation! It will appear in your dashboard once approved.');
+      setShowDepositDialog(false);
+      setTransactionHash('');
+      loadData();
+    } catch (error: any) {
+      console.error('Investment failed:', error);
+      toast.error(error.message || 'Investment submission failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Copied to clipboard');
+  };
+
+  const formatDuration = (days: number, hours: number) => {
+    if (days === 0 && hours === 0) return 'Indefinite';
+    const parts = [];
+    if (days > 0) parts.push(`${days} Day${days !== 1 ? 's' : ''}`);
+    if (hours > 0) parts.push(`${hours} Hour${hours !== 1 ? 's' : ''}`);
+    return parts.length > 0 ? parts.join(' ') : 'Instant';
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="fluid-padding space-y-10 max-w-[1600px] mx-auto overflow-hidden">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 animate-in slide-in-from-top-4 duration-700">
+        <div className="space-y-1">
+          <h1 className="text-2xl md:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
+            Investment <span className="v56-gradient-text">Plans</span>
+          </h1>
+          <p className="text-muted-foreground flex items-center gap-2 text-sm md:text-base">
+            <ShieldCheck className="h-4 w-4" />
+            Secure your future with our premium gold-linked ROI plans
+          </p>
+        </div>
+        <div className="v56-glass premium-border px-6 py-3 flex gap-4 items-center rounded-2xl shrink-0">
+          <Wallet className="h-5 w-5 text-primary" />
+          <div>
+            <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Main Balance</p>
+            <p className="text-xl md:text-2xl font-bold text-primary leading-tight">${balances?.deposit.toFixed(2)} USDT</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-center">
+        {activeOption ? (
+          <Card className="v56-glass premium-border relative overflow-hidden max-w-lg w-full transition-all duration-300 hover:scale-[1.02] hover:shadow-glow group">
+            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+              <Gold3DIcon name="roi" size={100} />
+            </div>
+            
+            <CardHeader className="pb-4 border-b border-white/5">
+              <div className="flex justify-between items-start mb-2">
+                <Badge className="bg-primary/20 text-primary border-primary/20 font-black uppercase tracking-widest text-[10px]">
+                  {activeOption.roi_percentage}% ROI
+                </Badge>
+                <div className="flex items-center gap-2 text-primary">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">
+                    {formatDuration(activeOption.duration_days, activeOption.duration_hours)}
+                  </span>
+                </div>
+              </div>
+              <CardTitle className="text-2xl font-black italic tracking-tighter uppercase">{activeOption.option_name}</CardTitle>
+              <CardDescription className="text-xs leading-relaxed opacity-70">
+                {activeOption.description || 'Premium gold-backed investment plan with consistent ROI credits.'}
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="pt-6 space-y-6 px-4 sm:px-6">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <div className="p-3 sm:p-4 rounded-xl bg-white/5 border border-white/5 flex flex-col justify-center">
+                  <p className="text-[9px] sm:text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">Duration</p>
+                  <p className="text-sm sm:text-lg font-bold text-primary truncate">{formatDuration(activeOption.duration_days, activeOption.duration_hours)}</p>
+                </div>
+                <div className="p-3 sm:p-4 rounded-xl bg-white/5 border border-white/5 flex flex-col justify-center">
+                  <p className="text-[9px] sm:text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-1">Min Amount</p>
+                  <p className="text-sm sm:text-lg font-bold text-primary truncate">${activeOption.min_amount} USDT</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <Label className="text-[9px] sm:text-[10px] uppercase font-black tracking-widest text-muted-foreground">Investment Amount (USDT)</Label>
+                  {activeOption.deposit_fee_percentage > 0 && (
+                    <span className="text-[9px] font-black text-primary uppercase tracking-widest">Fee: {activeOption.deposit_fee_percentage}%</span>
+                  )}
+                </div>
+                <Input
+                  type="number"
+                  min={activeOption.min_amount}
+                  step="0.01"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="h-10 sm:h-12 bg-black/40 border-white/10 text-lg sm:text-xl font-bold focus:border-primary rounded-xl"
+                />
+              </div>
+            </CardContent>
+            
+            <CardFooter>
+              <Button 
+                onClick={handleInvestClick}
+                className="w-full h-14 rounded-xl font-black uppercase tracking-widest premium-gradient overflow-hidden"
+              >
+                Invest Now
+                <TrendingUp className="ml-2 h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
+        ) : (
+          <div className="v56-glass premium-border p-12 rounded-3xl text-center space-y-4 max-w-lg w-full">
+            <Info className="h-12 w-12 text-primary mx-auto opacity-50" />
+            <h3 className="text-xl font-black uppercase tracking-tight">No Active Plans</h3>
+            <p className="text-muted-foreground text-sm">There are currently no active investment plans available for you. Please check back later.</p>
+          </div>
+        )}
+      </div>
+
+      {selections.length > 0 && (
+        <div className="space-y-6 pt-10">
+          <div className="space-y-1">
+            <h2 className="text-xl md:text-2xl font-black flex items-center gap-2">
+              <TrendingUp className="h-6 w-6 text-primary" />
+              My <span className="text-primary">Investments</span>
+            </h2>
+            <p className="text-xs text-muted-foreground uppercase font-bold tracking-widest">Tracking your active and pending positions</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {selections.map((selection) => (
+              <Card key={selection.id} className="v56-glass premium-border flex flex-col md:flex-row items-center gap-4 md:gap-6 p-4 md:p-6 overflow-hidden hover:translate-y-0 hover:scale-100 transition-none">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
+                  <Gold3DIcon name="roi" size={32} className="md:w-12 md:h-12" />
+                </div>
+                <div className="flex-1 text-center md:text-left space-y-1 w-full overflow-hidden">
+                  <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-1">
+                    <Badge variant="secondary" className="bg-primary/10 text-primary border-none text-[8px] md:text-[9px] uppercase font-black">
+                      {selection.investment_options?.option_name}
+                    </Badge>
+                    <Badge 
+                      variant="outline" 
+                      className={`text-[8px] md:text-[9px] uppercase font-black border-none ${
+                        selection.status === 'active' ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'
+                      }`}
+                    >
+                      {selection.status === 'active' ? 'Active' : 'Pending'}
+                    </Badge>
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-black italic tracking-tighter truncate">
+                    ${Number(selection.amount).toLocaleString()} <span className="text-xs md:text-sm font-medium text-muted-foreground uppercase">USDT</span>
+                  </h3>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest">
+                      {selection.status === 'active' ? 'Started: ' : 'Submitted: '}{new Date(selection.selected_at).toLocaleDateString()}
+                    </p>
+                    <p className="text-[9px] md:text-[10px] text-primary font-black uppercase tracking-widest flex items-center justify-center md:justify-start gap-1">
+                      <Clock className="h-3 w-3" />
+                      Duration: {formatDuration(selection.investment_options?.duration_days, selection.investment_options?.duration_hours)}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-center md:text-right space-y-1 bg-white/5 p-3 md:p-4 rounded-xl border border-white/5 w-full md:w-auto">
+                  <p className="text-[9px] md:text-[10px] uppercase font-black tracking-widest text-muted-foreground">Earnings Est.</p>
+                  <p className="text-lg md:text-xl font-bold text-green-500 leading-tight">
+                    {selection.status === 'active' ? `+$${(selection.amount * (selection.investment_options?.roi_percentage / 100 / 30)).toFixed(2)}/day` : 'Waiting for approval'}
+                  </p>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Info Section */}
+      <div className="v56-glass premium-border p-8 rounded-3xl bg-primary/5 flex flex-col md:flex-row items-center gap-8 border-dashed hover:translate-y-0 hover:scale-100 transition-none">
+        <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center border border-primary/20 shrink-0">
+          <Info className="h-8 w-8 text-primary" />
+        </div>
+        <div className="space-y-2 text-center md:text-left">
+          <h4 className="font-black uppercase tracking-widest text-primary">Secure Funding Process</h4>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
+            To invest, select your desired amount and send the exact USDT amount to the unique wallet address provided for your selected plan.
+            Enter your transaction hash for automated on-chain validation. 
+            All funds are linked to physical gold asset reserves, ensuring a stable and secure return environment.
+          </p>
+        </div>
+      </div>
+
+      {/* Deposit Dialog */}
+      <Dialog open={showDepositDialog} onOpenChange={setShowDepositDialog}>
+        <DialogContent 
+          data-testid="deposit-dialog"
+          className="v56-glass max-w-md border-white/10 p-0 overflow-hidden rounded-3xl duration-0 animate-none fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]"
+          onInteractOutside={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <DialogHeader className="p-6 border-b border-white/5 bg-primary/5">
+            <DialogTitle data-testid="deposit-dialog-title" className="text-xl font-black italic tracking-tighter uppercase italic flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              Secure Plan Deposit
+            </DialogTitle>
+            <DialogDescription className="text-xs uppercase font-bold tracking-widest opacity-60">
+              Send exactly <span className="text-primary font-black" data-testid="deposit-amount">{amount} USDT</span> to the plan wallet below.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-6 space-y-6">
+            {/* Wallet Info - Two Network Options */}
+            <div className="space-y-4">
+              {/* BEP20 Option */}
+              <div className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-3" data-testid="wallet-bep20">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Deposit Network</span>
+                  <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-primary/20 text-primary">USDT BEP20</Badge>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 block p-3 rounded-xl bg-white/5 text-[11px] break-all font-mono opacity-80 border border-white/5" data-testid="bep20-address">
+                      {bep20Address || activeOption?.wallet_address || '0xPleaseContactAdmin'}
+                    </code>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-10 w-10 shrink-0 rounded-xl"
+                      onClick={() => copyToClipboard(bep20Address || activeOption?.wallet_address || '')}
+                      data-testid="copy-bep20"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* TRC20 Option */}
+              <div className="p-4 rounded-2xl bg-black/40 border border-white/5 space-y-3" data-testid="wallet-trc20">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Deposit Network</span>
+                  <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-primary/20 text-primary">USDT TRC20</Badge>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 block p-3 rounded-xl bg-white/5 text-[11px] break-all font-mono opacity-80 border border-white/5" data-testid="trc20-address">
+                      {trc20Address || 'PleaseContactAdmin'}
+                    </code>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-10 w-10 shrink-0 rounded-xl"
+                      onClick={() => copyToClipboard(trc20Address)}
+                      data-testid="copy-trc20"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Instruction */}
+            <div className="flex gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/10">
+              <AlertCircle className="h-5 w-5 text-primary shrink-0" />
+              <p className="text-[10px] leading-relaxed font-bold uppercase tracking-wide opacity-80">
+                1. Copy the address above. <br/>
+                2. Send {amount} USDT from your personal wallet. <br/>
+                3. Wait for the transaction to complete on-chain. <br/>
+                4. Paste the Transaction Hash (TXID) below.
+              </p>
+            </div>
+
+            {/* Hash Input */}
+            <div className="space-y-2">
+              <Label htmlFor="tx-hash" className="text-[10px] uppercase font-black tracking-widest text-muted-foreground flex items-center gap-1">
+                <Hash className="h-3 w-3" />
+                Transaction Hash (TXID)
+              </Label>
+              <Input
+                id="tx-hash"
+                data-testid="input-tx-hash"
+                value={transactionHash}
+                onChange={(e) => setTransactionHash(e.target.value)}
+                placeholder="0x..."
+                className="h-12 bg-black/20 border-white/10 rounded-xl font-mono text-xs"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="p-6 border-t border-white/5 bg-black/20">
+            <Button variant="ghost" onClick={() => setShowDepositDialog(false)} data-testid="deposit-cancel" className="rounded-xl uppercase font-bold text-xs tracking-widest">Cancel</Button>
+            <Button 
+              onClick={handleSubmitInvestment} 
+              disabled={submitting}
+              data-testid="deposit-submit"
+              className="premium-gradient rounded-xl px-8 uppercase font-black text-xs tracking-widest h-12 flex-1"
+            >
+              {submitting ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+              )}
+              Submit for Validation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
