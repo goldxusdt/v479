@@ -20,7 +20,6 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { supabase } from '@/services/supabase';
 
 import { ROIAdjustmentManager } from '@/components/admin/ROIAdjustmentManager';
-import { SMTPSettingsManager } from '@/components/admin/SMTPSettingsManager';
 import { BrandingManager } from '@/components/admin/BrandingManager';
 
 export default function AdminSettingsPage() {
@@ -83,12 +82,6 @@ export default function AdminSettingsPage() {
     analytics_code: '',
     header_scripts: '',
     footer_scripts: '',
-    
-    // Hostinger SMTP (Updated)
-    smtp_user: '',
-    smtp_pass: '',
-    smtp_host: 'smtp.hostinger.com',
-    smtp_port: '465',
     
     // Help Links
     youtube_deposit_help: '',
@@ -312,59 +305,7 @@ export default function AdminSettingsPage() {
             </Card>
 
             {/* ROI Settings */}
-            <Card className="v56-glass premium-border">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-primary" />
-                  <CardTitle>ROI Configuration</CardTitle>
-                </div>
-                <CardDescription>Investment returns settings</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Monthly ROI (%)</Label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      value={settings.monthly_roi}
-                      disabled={settings.is_referral_default === 'true'}
-                      onChange={(e) => {
-                        const monthly = e.target.value;
-                        const daily = (parseFloat(monthly) / 30).toFixed(4);
-                        updateSetting('monthly_roi', monthly);
-                        updateSetting('daily_roi_percentage', daily);
-                      }}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Daily ROI (%) [Auto]</Label>
-                    <Input
-                      type="number"
-                      value={settings.daily_roi_percentage}
-                      readOnly
-                      className="bg-muted"
-                    />
-                  </div>
-                  <div className="space-y-2 col-span-2">
-                    <Label>Target USDT (Projection)</Label>
-                    <Input
-                      type="number"
-                      value={(settings as any).target_usdt}
-                      disabled={settings.is_referral_default === 'true'}
-                      onChange={(e) => updateSetting('target_usdt', e.target.value)}
-                      placeholder="Enter target USDT for projections"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* SMTP Settings Component */}
-            <SMTPSettingsManager 
-              settings={settings} 
-              updateSetting={updateSetting} 
-            />
+            <ROIAdjustmentManager />
           </div>
 
           {/* Referral Commission */}
