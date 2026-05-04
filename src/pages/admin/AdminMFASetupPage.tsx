@@ -47,12 +47,11 @@ export default function AdminMFASetupPage() {
 
     setLoading(true);
     try {
-      const { data, error } = await invokeEdgeFunction('verify-otp', {
+      const { data, error } = await invokeEdgeFunction('verifyTOTP', {
         body: {
-          email: user?.email,
+          userId: user?.id,
           otp,
           purpose: 'totp_verification'
-          // secret: setupData.secret, // No longer needed as it's stored in mfa_pending_secret
         }
       });
 

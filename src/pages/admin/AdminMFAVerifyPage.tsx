@@ -26,7 +26,7 @@ export default function AdminMFAVerifyPage() {
 
     setLoading(true);
     try {
-      const { error } = await invokeEdgeFunction('verify-otp', {
+      const { error } = await invokeEdgeFunction('verifyTOTP', {
         body: {
           email: userEmail,
           email_otp: emailOtp,
