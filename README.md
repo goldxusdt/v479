@@ -1,6 +1,3 @@
-# Welcome to Your Miaoda Project
-Miaoda Application Link URL
-    URL:https://medo.dev/projects/app-a8oqo7dishz5
 
 # Gold X Usdt MLM Platform
 
