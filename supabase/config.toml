@@ -6,6 +6,6 @@ enable_confirmations = false
 
 [auth.external.google]
 enabled = true
-client_id = "177188909353-25feb1b7el138ljg1r1ch1oc1j2g73cl.apps.googleusercontent.com"
+client_id = "161290474472-qs9d5i6plbllc4gjcov031oi1fk3uf98.apps.googleusercontent.com"
 client_secret = "env(GOOGLE_CLIENT_SECRET)"
 
