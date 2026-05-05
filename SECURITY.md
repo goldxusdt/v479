@@ -255,7 +255,7 @@ This document provides a detailed analysis of the **100 web security vulnerabili
 #### 32. Improper Access Controls
 **Status**: ✅ **MITIGATED**
 - **How**: 
-  - Role-based access control (user/admin/super_admin)
+  - Role-based access control (user/admin/admin)
   - RLS policies per table
   - Frontend route guards
 
@@ -303,7 +303,7 @@ This document provides a detailed analysis of the **100 web security vulnerabili
 #### 41. Privilege Escalation
 **Status**: ✅ **MITIGATED**
 - **How**: 
-  - Role changes require super_admin
+  - Role changes require admin
   - RLS prevents unauthorized role updates
   - Audit logging tracks role changes
 
@@ -630,7 +630,7 @@ This document provides a detailed analysis of the **100 web security vulnerabili
 ### 2. Principle of Least Privilege
 - Users can only access their own data
 - Admins have limited elevated permissions
-- Super admins for critical operations only
+- Admins for critical operations only
 
 ### 3. Secure by Default
 - HTTPS enforced
